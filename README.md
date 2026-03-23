@@ -2,22 +2,28 @@
 
 Auto-generates [Claude Code skills](https://docs.anthropic.com/en/docs/claude-code/skills) from official Spring Boot documentation. Topics are auto-discovered from the repo — no hardcoded list.
 
-## Install a Pre-built Skill
+## Quick Install
 
-Download the latest release for your Spring Boot version from [Releases](../../releases), then:
+**One-liner** (requires `curl` and `unzip`):
 
 ```bash
-unzip spring-boot-4-0-3.zip -d ~/.claude/skills/
+curl -fsSL https://raw.githubusercontent.com/Tcivie/spring-boot-skill-gen/main/install.sh | bash -s -- 4.0.4
 ```
 
-That's it. Claude Code will use it automatically when you work with Spring Boot.
+**Or manually** — download from [Releases](../../releases) and unzip:
+
+```bash
+unzip spring-boot-4-0-4.zip -d ~/.claude/skills/
+```
+
+Claude Code picks it up automatically — no restart needed. It activates when you work with Spring Boot code.
 
 ## What's Inside
 
 Each skill follows [progressive disclosure](https://docs.anthropic.com/en/docs/claude-code/skills#add-supporting-files):
 
 ```
-spring-boot-4-0-3/
+spring-boot-4-0-4/
 ├── SKILL.md                           # 16 KB — principles, anti-patterns, topic index
 └── references/                        # ~860 KB — loaded on demand
     ├── actuator/
@@ -49,17 +55,17 @@ cd spring-boot-skill-gen
 pip install httpx
 npm install
 
-python generate_skill.py --version 4.0.3
-# Output: spring-boot-4-0-3/
+python generate_skill.py --version 4.0.4
+# Output: spring-boot-4-0-4/
 
-cp -r spring-boot-4-0-3 ~/.claude/skills/
+cp -r spring-boot-4-0-4 ~/.claude/skills/
 ```
 
 ### Commands
 
 ```bash
-python generate_skill.py --version 4.0.3              # generate for a version
-python generate_skill.py --version 4.0.3 --no-cache   # force re-fetch
+python generate_skill.py --version 4.0.4              # generate for a version
+python generate_skill.py --version 4.0.4 --no-cache   # force re-fetch
 python generate_skill.py --list-versions               # show cached versions
 python generate_skill.py --clear-cache                 # clear all cache
 ```
@@ -68,7 +74,7 @@ python generate_skill.py --clear-cache                 # clear all cache
 
 Skills are versioned as `<spring-boot-version>-r<revision>`:
 
-- **New Spring Boot patch** (4.0.3 → 4.0.4): new version starts at `r1`
+- **New Spring Boot patch** (4.0.4 → 4.0.4): new version starts at `r1`
 - **Script change** (better cleanup, new sections): all versions bump revision (`r1` → `r2`)
 
 The CI pipeline checks daily for new Spring Boot releases and regenerates automatically.
