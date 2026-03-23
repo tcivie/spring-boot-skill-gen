@@ -1,0 +1,11 @@
+{
+  "script_hash": "4ddc0c7c934c",
+  "versions": {
+    "3.4.13": {
+      "revision": 1
+    },
+    "4.0.4": {
+      "revision": 1
+    }
+  }
+}
