@@ -20,41 +20,58 @@ SCRIPT_FILE = Path("generate_skill.py")
 OUTPUT_DIR = Path("output")
 GITHUB_OUTPUT = os.environ.get("GITHUB_OUTPUT", "/dev/null")
 
-# Active Spring Boot minor branches to track (latest patch of each)
-TRACKED_MINORS = ["3.4", "4.0"]
 
 
 def get_script_hash() -> str:
     return hashlib.sha256(SCRIPT_FILE.read_bytes()).hexdigest()[:12]
 
 
-def get_latest_tags() -> dict[str, str]:
-    """Fetch the latest patch version for each tracked minor from GitHub."""
+def _github_headers() -> dict[str, str]:
     headers = {"Accept": "application/vnd.github+json"}
     token = os.environ.get("GITHUB_TOKEN", "")
     if token:
         headers["Authorization"] = f"Bearer {token}"
+    return headers
+
+
+def get_latest_tags() -> dict[str, str]:
+    """Auto-discover active Spring Boot minor branches and return the latest patch of each.
+
+    Fetches all release tags, groups by minor (X.Y), picks the top MAX_ACTIVE_MINORS
+    minors by highest version, and returns the latest patch for each.
+    """
+    import re
+
     resp = httpx.get(
         "https://api.github.com/repos/spring-projects/spring-boot/tags?per_page=100",
-        headers=headers,
+        headers=_github_headers(),
         timeout=30,
     )
     resp.raise_for_status()
-    import re
     tags = [
         t["name"].lstrip("v") for t in resp.json()
         if t["name"].startswith("v") and re.match(r"^v?\d+\.\d+\.\d+$", t["name"])
     ]
 
+    # Group by major version, then find the highest minor, then latest patch
+    by_major: dict[int, list[str]] = {}
+    for tag in tags:
+        major = int(tag.split(".")[0])
+        by_major.setdefault(major, []).append(tag)
+
+    # For each major, find the latest version (highest minor + patch)
     latest: dict[str, str] = {}
-    for minor in TRACKED_MINORS:
-        matching = sorted(
-            [t for t in tags if t.startswith(f"{minor}.")],
+    for major in sorted(by_major.keys(), reverse=True):
+        all_versions = sorted(
+            by_major[major],
             key=lambda v: list(map(int, v.split("."))),
             reverse=True,
         )
-        if matching:
-            latest[minor] = matching[0]
+        top = all_versions[0]
+        minor = f"{top.split('.')[0]}.{top.split('.')[1]}"
+        latest[minor] = top
+        print(f"  Major {major} -> latest branch {minor}.x -> {top}")
+
     return latest
 
 
@@ -75,17 +92,20 @@ def main() -> None:
     new_hash = get_script_hash()
     script_changed = new_hash != old_hash
 
+    # Track which versions need regeneration
+    to_generate: set[str] = set()
+
     if script_changed:
         print(f"Script changed: {old_hash} -> {new_hash}")
-        # Bump revision for all tracked versions
+        # Bump revision for all tracked versions — they all need regeneration
         for v in versions:
             versions[v]["revision"] = versions[v].get("revision", 0) + 1
+            to_generate.add(v)
         state["script_hash"] = new_hash
 
     # Check for new Spring Boot releases
     print("Checking for new Spring Boot releases...")
     latest = get_latest_tags()
-    versions_changed = script_changed
 
     for minor, latest_version in latest.items():
         if latest_version not in versions:
@@ -94,21 +114,29 @@ def main() -> None:
             for old in old_patches:
                 print(f"  Replacing {old} with {latest_version}")
                 del versions[old]
+                to_generate.discard(old)
             versions[latest_version] = {"revision": 1}
-            versions_changed = True
+            to_generate.add(latest_version)
             print(f"  New version: {latest_version}")
 
-    if not versions_changed and not force:
+    if force:
+        to_generate = set(versions.keys())
+
+    if not to_generate:
         print("No changes detected. Nothing to generate.")
         set_output("releases", "")
         set_output("versions_changed", "false")
         return
+
+    print(f"\nVersions to generate: {sorted(to_generate)}")
 
     # Generate skills
     OUTPUT_DIR.mkdir(exist_ok=True)
     releases = []
 
     for version, meta in sorted(versions.items()):
+        if version not in to_generate:
+            continue
         revision = meta.get("revision", 1)
         tag = f"v{version}-r{revision}"
         print(f"\nGenerating skill for Spring Boot {version} (revision {revision})...")
@@ -144,7 +172,7 @@ def main() -> None:
 
     # Output for GitHub Actions
     set_output("releases", " ".join(releases))
-    set_output("versions_changed", "true" if versions_changed else "false")
+    set_output("versions_changed", "true" if releases else "false")
 
     print(f"\nDone. Releases: {releases}")
 
