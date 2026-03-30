@@ -152,17 +152,6 @@ def main() -> None:
 
         print(result.stdout)
 
-        # Update metadata.version in the generated SKILL.md
-        folder = f"spring-boot-{version.replace('.', '-')}"
-        skill_md = OUTPUT_DIR / folder / "SKILL.md"
-        if skill_md.exists():
-            content = skill_md.read_text()
-            content = content.replace(
-                f'version: "{version}"',
-                f'version: "{version}-r{revision}"',
-            )
-            skill_md.write_text(content)
-
         releases.append(f"{version}:{tag}")
         meta["revision"] = revision
 

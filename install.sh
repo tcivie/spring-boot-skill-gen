@@ -4,8 +4,7 @@
 set -euo pipefail
 
 VERSION="${1:?Usage: install.sh <spring-boot-version> (e.g. 4.0.4)}"
-KEBAB="${VERSION//./-}"
-SKILL_DIR="${HOME}/.claude/skills/spring-boot-${KEBAB}"
+SKILL_DIR="${HOME}/.claude/skills/spring-boot-best-practices"
 REPO="Tcivie/spring-boot-skill-gen"
 
 # Find the latest release tag for this version
@@ -27,7 +26,7 @@ echo "Installing Spring Boot ${VERSION} skill (${TAG})..."
 
 # Download and extract
 TMPDIR=$(mktemp -d)
-curl -fsSL "https://github.com/${REPO}/releases/download/${TAG}/spring-boot-${KEBAB}.zip" -o "${TMPDIR}/skill.zip"
+curl -fsSL "https://github.com/${REPO}/releases/download/${TAG}/spring-boot-best-practices.zip" -o "${TMPDIR}/skill.zip"
 
 # Remove old version if exists
 rm -rf "${SKILL_DIR}"

@@ -54,11 +54,10 @@ jobs:
           for release_info in ${{ steps.generate.outputs.releases }}; do
             version=$(echo "$release_info" | cut -d: -f1)
             tag=$(echo "$release_info" | cut -d: -f2)
-            zip_file="spring-boot-${version//./-}.zip"
+            zip_file="spring-boot-best-practices.zip"
 
             # Zip the skill folder
-            skill_dir="output/spring-boot-${version//./-}"
-            cd output && zip -r "../$zip_file" "spring-boot-${version//./-}/" && cd ..
+            cd output && zip -r "../$zip_file" "spring-boot-best-practices/" && cd ..
 
             # Create or update release
             if gh release view "$tag" &>/dev/null; then
@@ -72,7 +71,7 @@ jobs:
 
           \`\`\`bash
           # Download and unzip
-          unzip spring-boot-${version//./-}.zip -d ~/.claude/skills/
+          unzip spring-boot-best-practices.zip -d ~/.claude/skills/
           \`\`\`
 
           Generated from official Spring Boot $version documentation."

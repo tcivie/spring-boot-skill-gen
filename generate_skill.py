@@ -470,10 +470,8 @@ def build_skill(version: str, output_dir: Path, folder_name: str | None = None) 
 
     # 7. Write SKILL.md
     generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    version_kebab = version.replace(".", "-")
     skill_content = SKILL_MD.format(
         version=version,
-        version_kebab=version_kebab,
         generated_at=generated_at,
         topic_index="\n".join(topic_index_lines),
     )
@@ -522,8 +520,8 @@ def save_cache(version: str, skill_dir: Path, meta: dict) -> None:
 
 SKILL_MD = """\
 ---
-name: spring-boot-{version_kebab}
-description: Official Spring Boot {version} reference for Java, Kotlin, and Scala Spring projects. Provides best practices, anti-patterns, and reference docs. Use when editing or reviewing Spring Boot source files (.java, .kt, .scala) in a Spring Boot codebase, working with build.gradle/pom.xml containing spring-boot-starter dependencies, modifying application.yml/application.properties, writing Spring Boot tests, or discussing auto-configuration, @ConfigurationProperties, Spring MVC, WebFlux, JPA, JDBC, actuator, observability, messaging, or caching.
+name: spring-boot-best-practices
+description: Official Spring Boot reference for Java, Kotlin, and Scala Spring projects. Provides best practices, anti-patterns, and reference docs. Use when editing or reviewing Spring Boot source files (.java, .kt, .scala) in a Spring Boot codebase, working with build.gradle/pom.xml containing spring-boot-starter dependencies, modifying application.yml/application.properties, writing Spring Boot tests, or discussing auto-configuration, @ConfigurationProperties, Spring MVC, WebFlux, JPA, JDBC, actuator, observability, messaging, or caching.
 ---
 
 # Spring Boot {version} — Reference SKILL
@@ -636,7 +634,7 @@ def main() -> None:
         sys.exit(1)
 
     output_dir = Path(args.output)
-    folder_name = f"spring-boot-{version.replace('.', '-')}"
+    folder_name = "spring-boot-best-practices"
     skill_dir = output_dir / folder_name
 
     if not args.no_cache and load_cache(version, skill_dir):
