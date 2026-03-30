@@ -1,14 +1,14 @@
 {
-  "script_hash": "aca2db7a5211",
+  "script_hash": "b4bc643a38ff",
   "versions": {
     "3.4.13": {
-      "revision": 2
+      "revision": 3
     },
     "4.0.5": {
-      "revision": 2
+      "revision": 3
     },
     "3.5.13": {
-      "revision": 2
+      "revision": 3
     }
   }
 }
