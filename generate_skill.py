@@ -521,7 +521,7 @@ def save_cache(version: str, skill_dir: Path, meta: dict) -> None:
 SKILL_MD = """\
 ---
 name: spring-boot-best-practices
-description: Official Spring Boot reference for Java, Kotlin, and Scala Spring projects. Provides best practices, anti-patterns, and reference docs. Use when editing or reviewing Spring Boot source files (.java, .kt, .scala) in a Spring Boot codebase, working with build.gradle/pom.xml containing spring-boot-starter dependencies, modifying application.yml/application.properties, writing Spring Boot tests, or discussing auto-configuration, @ConfigurationProperties, Spring MVC, WebFlux, JPA, JDBC, actuator, observability, messaging, or caching.
+description: Guides Spring Boot development with best practices, anti-patterns, and official reference docs. Use when working in a Spring Boot codebase or discussing Spring Boot concepts.
 ---
 
 # Spring Boot {version} — Reference SKILL
