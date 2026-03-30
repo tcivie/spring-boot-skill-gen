@@ -523,20 +523,7 @@ def save_cache(version: str, skill_dir: Path, meta: dict) -> None:
 SKILL_MD = """\
 ---
 name: spring-boot-{version_kebab}
-description: >
-  Official Spring Boot {version} reference knowledge for building, reviewing, and debugging
-  Spring Boot applications. Use when user works with Spring Boot code, asks about
-  auto-configuration, @ConfigurationProperties, application.yml/properties, Spring MVC,
-  WebFlux, JPA, JDBC, testing slices, actuator, observability, messaging, or caching.
-  Use when user mentions "Spring Boot", "@SpringBootApplication", "spring-boot-starter",
-  "@SpringBootTest", "@WebMvcTest", "@DataJpaTest", "@ConfigurationProperties",
-  "application.properties", or "application.yml". Provides best practices, anti-patterns,
-  and reference docs for all Spring Boot {version} features.
-compatibility: Requires Java/Kotlin/Scala Spring Boot {version} project. No external tools needed.
-metadata:
-  author: spring-boot-skill-gen
-  version: "{version}"
-  source: spring-projects/spring-boot v{version}
+description: "Official Spring Boot {version} reference for Java, Kotlin, and Scala Spring projects. Provides best practices, anti-patterns, and reference docs. Use when editing or reviewing Spring Boot source files (.java, .kt, .scala) in a Spring Boot codebase, working with build.gradle/pom.xml containing spring-boot-starter dependencies, modifying application.yml/application.properties, writing Spring Boot tests, or discussing auto-configuration, @ConfigurationProperties, Spring MVC, WebFlux, JPA, JDBC, actuator, observability, messaging, or caching."
 ---
 
 # Spring Boot {version} — Reference SKILL
