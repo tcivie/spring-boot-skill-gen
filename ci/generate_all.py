@@ -49,28 +49,33 @@ def get_latest_patch(repo: str, tag_prefix: str, minor: str) -> str | None:
 
     E.g. minor="6.4" in spring-security → "6.4.13"
     """
-    resp = httpx.get(
-        f"https://api.github.com/repos/{repo}/tags?per_page=100",
-        headers=_github_headers(),
-        timeout=30,
-    )
-    resp.raise_for_status()
-
     best: str | None = None
     best_tuple: tuple[int, ...] = (0,)
     prefix_re = re.compile(rf"^{re.escape(tag_prefix)}(\d+\.\d+\.\d+)$")
 
-    for tag in resp.json():
-        m = prefix_re.match(tag["name"])
-        if not m:
-            continue
-        version = m.group(1)
-        if not version.startswith(f"{minor}."):
-            continue
-        v_tuple = tuple(map(int, version.split(".")))
-        if v_tuple > best_tuple:
-            best = version
-            best_tuple = v_tuple
+    for page in range(1, 4):
+        resp = httpx.get(
+            f"https://api.github.com/repos/{repo}/tags?per_page=100&page={page}",
+            headers=_github_headers(),
+            timeout=30,
+        )
+        resp.raise_for_status()
+        tags = resp.json()
+        if not tags:
+            break
+        for tag in tags:
+            m = prefix_re.match(tag["name"])
+            if not m:
+                continue
+            version = m.group(1)
+            if not version.startswith(f"{minor}."):
+                continue
+            v_tuple = tuple(map(int, version.split(".")))
+            if v_tuple > best_tuple:
+                best = version
+                best_tuple = v_tuple
+        if best:
+            break  # Found at least one match, no need to paginate
 
     return best
 
@@ -80,24 +85,30 @@ def resolve_cloud_versions(train_minor: str) -> dict[str, str]:
 
     E.g. train_minor="2024.0" → {"cloud-gateway": "4.2.7", "cloud-config": "4.2.4", ...}
     """
-    # Find latest patch of the train
-    resp = httpx.get(
-        "https://api.github.com/repos/spring-cloud/spring-cloud-release/tags?per_page=100",
-        headers=_github_headers(),
-        timeout=30,
-    )
-    resp.raise_for_status()
-
+    # Find latest patch of the train (paginate — older trains are on page 2+)
     train_re = re.compile(rf"^v{re.escape(train_minor)}\.(\d+)$")
     best_patch = -1
     best_tag = ""
-    for tag in resp.json():
-        m = train_re.match(tag["name"])
-        if m:
-            patch = int(m.group(1))
-            if patch > best_patch:
-                best_patch = patch
-                best_tag = tag["name"]
+
+    for page in range(1, 4):
+        resp = httpx.get(
+            f"https://api.github.com/repos/spring-cloud/spring-cloud-release/tags?per_page=100&page={page}",
+            headers=_github_headers(),
+            timeout=30,
+        )
+        resp.raise_for_status()
+        tags = resp.json()
+        if not tags:
+            break
+        for tag in tags:
+            m = train_re.match(tag["name"])
+            if m:
+                patch = int(m.group(1))
+                if patch > best_patch:
+                    best_patch = patch
+                    best_tag = tag["name"]
+        if best_tag:
+            break  # Found it, no need to paginate further
 
     if not best_tag:
         print(f"  Warning: no Cloud train tag found for {train_minor}")
