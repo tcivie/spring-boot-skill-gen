@@ -389,7 +389,9 @@ def _section_title(section: str) -> str:
     return section.replace("-", " ").title()
 
 
-def build_skill(version: str, output_dir: Path, folder_name: str | None = None) -> dict:
+def build_skill(version: str, output_dir: Path, folder_name: str | None = None,
+                 display_version: str | None = None) -> dict:
+    display_version = display_version or version
     skill_dir = output_dir / (folder_name or version)
     refs_dir = skill_dir / "references"
     refs_dir.mkdir(parents=True, exist_ok=True)
@@ -471,7 +473,7 @@ def build_skill(version: str, output_dir: Path, folder_name: str | None = None) 
     # 7. Write SKILL.md
     generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     skill_content = SKILL_MD.format(
-        version=version,
+        version=display_version,
         generated_at=generated_at,
         topic_index="\n".join(topic_index_lines),
     )
@@ -612,6 +614,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Generate a Claude Code SKILL from Spring Boot docs")
     parser.add_argument("--version", "-v", help="Spring Boot version (e.g. 4.0.3)")
     parser.add_argument("--output", "-o", default=".", help="Output base directory (default: .)")
+    parser.add_argument("--display-version", help="Version shown in SKILL.md (e.g. 3.4.x). Defaults to --version value")
     parser.add_argument("--no-cache", action="store_true", help="Re-fetch even if cached")
     parser.add_argument("--list-versions", action="store_true", help="List cached versions")
     parser.add_argument("--clear-cache", nargs="?", const="ALL", metavar="VERSION",
@@ -640,7 +643,7 @@ def main() -> None:
     if not args.no_cache and load_cache(version, skill_dir):
         pass
     else:
-        meta = build_skill(version, output_dir, folder_name)
+        meta = build_skill(version, output_dir, folder_name, args.display_version)
         save_cache(version, skill_dir, meta)
 
     ref_count = sum(1 for _ in (skill_dir / "references").rglob("*.md"))

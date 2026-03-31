@@ -52,20 +52,19 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           for release_info in ${{ steps.generate.outputs.releases }}; do
-            version=$(echo "$release_info" | cut -d: -f1)
+            minor=$(echo "$release_info" | cut -d: -f1)
             tag=$(echo "$release_info" | cut -d: -f2)
+            display="${minor}.x"
             zip_file="spring-boot-best-practices.zip"
 
             # Zip the skill folder
             cd output && zip -r "../$zip_file" "spring-boot-best-practices/" && cd ..
 
-            # Create or update release
-            if gh release view "$tag" &>/dev/null; then
-              gh release upload "$tag" "$zip_file" --clobber
-            else
-              gh release create "$tag" "$zip_file" \
-                --title "Spring Boot $version Skill" \
-                --notes "Auto-generated Claude Code skill for Spring Boot $version.
+            # Delete existing release if present, then create fresh
+            gh release delete "$tag" --yes --cleanup-tag 2>/dev/null || true
+            gh release create "$tag" "$zip_file" \
+              --title "Spring Boot ${display} Skill" \
+              --notes "Auto-generated Claude Code skill for Spring Boot ${display}.
 
           ## Install
 
@@ -74,8 +73,7 @@ jobs:
           unzip spring-boot-best-practices.zip -d ~/.claude/skills/
           \`\`\`
 
-          Generated from official Spring Boot $version documentation."
-            fi
+          Generated from official Spring Boot ${display} documentation."
           done
 
       - name: Commit updated versions.json
