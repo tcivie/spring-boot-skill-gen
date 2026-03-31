@@ -1,6 +1,8 @@
 node_modules/
 .skill_cache/
 spring-boot-*/
+output/
+zips/
 __pycache__/
 *.pyc
 .DS_Store

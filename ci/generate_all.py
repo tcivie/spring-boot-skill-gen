@@ -14,8 +14,10 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
+import zipfile
 from pathlib import Path
 
 import httpx
@@ -23,7 +25,9 @@ import httpx
 VERSIONS_FILE = Path("versions.json")
 SCRIPT_FILE = Path("generate_skill.py")
 OUTPUT_DIR = Path("output")
+ZIPS_DIR = Path("zips")
 GITHUB_OUTPUT = os.environ.get("GITHUB_OUTPUT", "/dev/null")
+SKILL_FOLDER = "spring-boot-best-practices"
 
 
 def get_script_hash() -> str:
@@ -129,8 +133,9 @@ def main() -> None:
 
     print(f"\nMinor versions to generate: {sorted(to_generate)}")
 
-    # Generate skills
+    # Generate skills and create per-version zips
     OUTPUT_DIR.mkdir(exist_ok=True)
+    ZIPS_DIR.mkdir(exist_ok=True)
     releases = []
 
     for minor in sorted(to_generate):
@@ -143,6 +148,11 @@ def main() -> None:
         tag = f"v{minor}"
         display = f"{minor}.x"
         print(f"\nGenerating skill for Spring Boot {display} (using {patch} docs)...")
+
+        # Clean output dir so previous version doesn't leak
+        skill_dir = OUTPUT_DIR / SKILL_FOLDER
+        if skill_dir.exists():
+            shutil.rmtree(skill_dir)
 
         result = subprocess.run(
             [sys.executable, str(SCRIPT_FILE),
@@ -157,7 +167,16 @@ def main() -> None:
             continue
 
         print(result.stdout)
-        releases.append(f"{minor}:{tag}")
+
+        # Create zip immediately while output dir has this version's content
+        zip_path = ZIPS_DIR / f"{tag}.zip"
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+            for file in sorted(skill_dir.rglob("*")):
+                if file.is_file():
+                    zf.write(file, f"{SKILL_FOLDER}/{file.relative_to(skill_dir)}")
+        print(f"  Zipped: {zip_path}")
+
+        releases.append(f"{minor}:{tag}:{zip_path}")
 
     # Save updated state
     state["versions"] = versions

@@ -54,23 +54,19 @@ jobs:
           for release_info in ${{ steps.generate.outputs.releases }}; do
             minor=$(echo "$release_info" | cut -d: -f1)
             tag=$(echo "$release_info" | cut -d: -f2)
+            zip_path=$(echo "$release_info" | cut -d: -f3)
             display="${minor}.x"
-            zip_file="spring-boot-best-practices.zip"
-
-            # Zip the skill folder
-            cd output && zip -r "../$zip_file" "spring-boot-best-practices/" && cd ..
 
             # Delete existing release if present, then create fresh
             gh release delete "$tag" --yes --cleanup-tag 2>/dev/null || true
-            gh release create "$tag" "$zip_file" \
+            gh release create "$tag" "${zip_path}#spring-boot-best-practices.zip" \
               --title "Spring Boot ${display} Skill" \
               --notes "Auto-generated Claude Code skill for Spring Boot ${display}.
 
           ## Install
 
           \`\`\`bash
-          # Download and unzip
-          unzip spring-boot-best-practices.zip -d ~/.claude/skills/
+          curl -fsSL https://raw.githubusercontent.com/Tcivie/spring-boot-skill-gen/main/install.sh | bash -s -- ${minor}
           \`\`\`
 
           Generated from official Spring Boot ${display} documentation."
