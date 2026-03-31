@@ -1,0 +1,119 @@
+{
+  "boot": {
+    "repo": "spring-projects/spring-boot",
+    "tag_prefix": "v",
+    "doc_paths": {
+      "3": "spring-boot-project/spring-boot-docs/src/docs/antora/modules",
+      "4": "documentation/spring-boot-docs/src/docs/antora/modules"
+    },
+    "modules": ["reference", "how-to"]
+  },
+  "security": {
+    "repo": "spring-projects/spring-security",
+    "tag_prefix": "",
+    "doc_paths": { "*": "docs/modules" },
+    "modules": ["ROOT"]
+  },
+  "ai": {
+    "repo": "spring-projects/spring-ai",
+    "tag_prefix": "v",
+    "doc_paths": { "*": "spring-ai-docs/src/main/antora/modules" },
+    "modules": ["ROOT"]
+  },
+  "modulith": {
+    "repo": "spring-projects/spring-modulith",
+    "tag_prefix": "",
+    "doc_paths": { "*": "src/docs/antora/modules" },
+    "modules": ["ROOT"]
+  },
+  "authorization-server": {
+    "repo": "spring-projects/spring-authorization-server",
+    "tag_prefix": "",
+    "doc_paths": { "*": "docs/modules" },
+    "modules": ["ROOT"]
+  },
+  "cloud-gateway": {
+    "repo": "spring-cloud/spring-cloud-gateway",
+    "tag_prefix": "v",
+    "doc_paths": { "*": "docs/modules" },
+    "modules": ["ROOT"]
+  },
+  "cloud-config": {
+    "repo": "spring-cloud/spring-cloud-config",
+    "tag_prefix": "v",
+    "doc_paths": { "*": "docs/modules" },
+    "modules": ["ROOT"]
+  },
+  "cloud-netflix": {
+    "repo": "spring-cloud/spring-cloud-netflix",
+    "tag_prefix": "v",
+    "doc_paths": { "*": "docs/modules" },
+    "modules": ["ROOT"]
+  },
+  "cloud-openfeign": {
+    "repo": "spring-cloud/spring-cloud-openfeign",
+    "tag_prefix": "v",
+    "doc_paths": { "*": "docs/modules" },
+    "modules": ["ROOT"]
+  },
+  "cloud-circuitbreaker": {
+    "repo": "spring-cloud/spring-cloud-circuitbreaker",
+    "tag_prefix": "v",
+    "doc_paths": { "*": "docs/modules" },
+    "modules": ["ROOT"]
+  },
+  "cloud-stream": {
+    "repo": "spring-cloud/spring-cloud-stream",
+    "tag_prefix": "v",
+    "doc_paths": { "*": "docs/modules" },
+    "modules": ["ROOT"]
+  },
+  "cloud-function": {
+    "repo": "spring-cloud/spring-cloud-function",
+    "tag_prefix": "v",
+    "doc_paths": { "*": "docs/modules" },
+    "modules": ["ROOT"]
+  },
+  "cloud-bus": {
+    "repo": "spring-cloud/spring-cloud-bus",
+    "tag_prefix": "v",
+    "doc_paths": { "*": "docs/modules" },
+    "modules": ["ROOT"]
+  },
+  "cloud-consul": {
+    "repo": "spring-cloud/spring-cloud-consul",
+    "tag_prefix": "v",
+    "doc_paths": { "*": "docs/modules" },
+    "modules": ["ROOT"]
+  },
+  "cloud-kubernetes": {
+    "repo": "spring-cloud/spring-cloud-kubernetes",
+    "tag_prefix": "v",
+    "doc_paths": { "*": "docs/modules" },
+    "modules": ["ROOT"]
+  },
+  "cloud-vault": {
+    "repo": "spring-cloud/spring-cloud-vault",
+    "tag_prefix": "v",
+    "doc_paths": { "*": "docs/modules" },
+    "modules": ["ROOT"]
+  },
+  "cloud-commons": {
+    "repo": "spring-cloud/spring-cloud-commons",
+    "tag_prefix": "v",
+    "doc_paths": { "*": "docs/modules" },
+    "modules": ["ROOT"]
+  },
+  "cloud-contract": {
+    "repo": "spring-cloud/spring-cloud-contract",
+    "tag_prefix": "v",
+    "doc_paths": { "*": "docs/modules" },
+    "modules": ["ROOT"]
+  },
+  "cloud-task": {
+    "repo": "spring-cloud/spring-cloud-task",
+    "tag_prefix": "v",
+    "doc_paths": { "*": "docs/modules" },
+    "modules": ["ROOT"]
+  }
+}

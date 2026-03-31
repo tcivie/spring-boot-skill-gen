@@ -1,6 +1,7 @@
 node_modules/
 .skill_cache/
 spring-boot-*/
+spring-best-practices/
 output/
 zips/
 __pycache__/

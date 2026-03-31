@@ -1,59 +1,56 @@
-# Spring Boot Skill Generator
+# Spring Ecosystem Skill Generator
 
-Auto-generates [Claude Code skills](https://docs.anthropic.com/en/docs/claude-code/skills) from official Spring Boot documentation. Topics are auto-discovered from the repo — no hardcoded list.
+Auto-generates [Claude Code skills](https://docs.anthropic.com/en/docs/claude-code/skills) from official Spring documentation. Covers the entire Spring ecosystem — not just Boot.
 
 ## Quick Install
-
-**One-liner** (requires `curl` and `unzip`):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Tcivie/spring-boot-skill-gen/main/install.sh | bash -s -- 3.4
 ```
 
-**Or manually** — download from [Releases](../../releases) and unzip:
+Or download from [Releases](../../releases) and unzip into `~/.claude/skills/`.
 
-```bash
-unzip spring-boot-best-practices.zip -d ~/.claude/skills/
-```
+## What's Included
 
-Claude Code picks it up automatically — no restart needed. It activates when you work with Spring Boot code.
+Each release bundles docs from **20 Spring projects**, all pinned to compatible versions for your Spring Boot line:
+
+| Category | Projects |
+|----------|----------|
+| **Core** | Spring Boot |
+| **Security** | Spring Security, Authorization Server |
+| **AI** | Spring AI |
+| **Cloud** | Gateway, Config, Netflix (Eureka), OpenFeign, Circuit Breaker, Stream, Function, Bus, Consul, Kubernetes, Vault, Commons, Contract, Task |
+| **Architecture** | Spring Modulith |
 
 ## Versioning
 
-Releases are tagged by **minor version** only (e.g. `v3.4`, `v4.0`), not by patch.
+Releases are tagged by **Spring Boot minor** (e.g. `v3.4`, `v4.0`). Each release includes all companion projects at their Boot-compatible versions:
 
-**Why no `3.4.13` or `3.5.13`?** Patch releases contain only bug fixes — no new features, APIs, or configuration properties are introduced. The best practices, reference docs, and anti-patterns are the same across all patches within a minor line. A single `3.4.x` skill covers `3.4.0` through `3.4.13` equally well.
+| Boot | Security | Cloud Train | AI | Modulith |
+|------|----------|------------|-----|----------|
+| 3.2.x | 6.2.x | 2023.0.x | — | 1.1.x |
+| 3.3.x | 6.3.x | 2023.0.x | 1.0.x | 1.2.x |
+| 3.4.x | 6.4.x | 2024.0.x | 1.0.x | 1.3.x |
+| 3.5.x | 6.5.x | 2025.0.x | 1.1.x | 1.4.x |
+| 4.0.x | 7.0.x | 2025.1.x | — | 2.0.x |
 
-When a new **minor** version is released (e.g. `4.1.0`), the CI pipeline automatically detects it and generates a new skill.
-
-## What's Inside
-
-Each skill follows [progressive disclosure](https://docs.anthropic.com/en/docs/claude-code/skills#add-supporting-files):
+## Skill Structure
 
 ```
-spring-boot-best-practices/
-├── SKILL.md                           # ~16 KB — principles, anti-patterns, topic index
-└── references/                        # ~860 KB — loaded on demand
-    ├── actuator/
-    │   ├── endpoints.md
-    │   ├── observability.md
-    │   └── metrics/                   # large topics split into sub-files
-    │       ├── getting-started.md
-    │       └── supported-monitoring-systems.md
-    ├── data/
-    │   ├── sql.md
-    │   └── nosql/                     # auto-split: Redis, MongoDB, Cassandra...
-    │       ├── redis.md
-    │       └── mongodb.md
-    ├── web/
-    ├── testing/
-    ├── messaging/
+spring-best-practices/
+├── SKILL.md                    # Always loaded — principles, anti-patterns, topic index
+└── references/                 # Loaded on demand by topic
+    ├── boot/                   # Spring Boot
+    │   ├── web/servlet.md
+    │   ├── data/sql.md
+    │   └── ...
+    ├── security/               # Spring Security
+    ├── ai/                     # Spring AI
+    ├── cloud-gateway/          # Spring Cloud Gateway
+    ├── cloud-config/           # Spring Cloud Config
+    ├── modulith/               # Spring Modulith
     └── ...
 ```
-
-- **SKILL.md** (always loaded): core principles, anti-pattern table, topic index with keywords
-- **references/** (on demand): Claude loads only the specific topic it needs
-- **Large topics** auto-split by `##` headings into sub-files with their own index
 
 ## Generate Yourself
 
@@ -63,30 +60,50 @@ cd spring-boot-skill-gen
 pip install httpx
 npm install
 
-python generate_skill.py --version 4.0.5
-# Output: spring-boot-best-practices/
+# Single project
+python generate_skill.py --project boot --version 4.0.5
 
-cp -r spring-boot-best-practices ~/.claude/skills/
-```
-
-### Commands
-
-```bash
-python generate_skill.py --version 4.0.5                              # generate for a version
-python generate_skill.py --version 4.0.5 --display-version 4.0.x      # custom display version
-python generate_skill.py --version 4.0.5 --no-cache                   # force re-fetch
-python generate_skill.py --list-versions                               # show cached versions
-python generate_skill.py --clear-cache                                 # clear all cache
+# Bundled (all projects)
+python generate_skill.py --bundled \
+  --companions '{"boot":"4.0.5","security":"7.0.4","ai":"1.1.4"}' \
+  --display-version 4.0.x
 ```
 
 ## How It Works
 
-1. **Discover** — GitHub Trees API finds all `.adoc` files under `reference/pages/` and `how-to/pages/`
-2. **Fetch** — async parallel download of all topics via `httpx`
-3. **Convert** — single Node.js process converts all AsciiDoc to Markdown via `downdoc`
-4. **Clean** — post-processing strips leftover macros (`javadoc:`, `configprop:`, `{attributes}`, HTML)
-5. **Split** — files over 300 lines are split by `##` headings into sub-files with an index
-6. **Package** — SKILL.md with frontmatter + topic index, references in subdirectories
+1. **Discover** — GitHub Trees API finds `.adoc` files in each project's Antora docs
+2. **Fetch** — async parallel download via `httpx`
+3. **Convert** — single Node.js process converts AsciiDoc → Markdown via `downdoc`
+4. **Clean** — post-processing strips macros (`javadoc:`, `configprop:`, `{attributes}`)
+5. **Split** — files over 300 lines split by `##` headings into sub-files
+6. **Bundle** — all projects assembled under one `references/` tree with SKILL.md index
+
+## Project Structure
+
+```
+├── generate_skill.py           # CLI entrypoint
+├── skillgen/                   # Core package
+│   ├── config/                 # Project definitions, constants
+│   │   ├── constants.py
+│   │   └── projects.py
+│   ├── discovery/              # GitHub topic discovery + fetching
+│   │   ├── topics.py
+│   │   ├── fetch.py
+│   │   └── metadata.py
+│   ├── conversion/             # AsciiDoc → Markdown
+│   │   ├── downdoc.py
+│   │   └── splitter.py
+│   └── building/               # Skill assembly
+│       ├── generator.py
+│       └── display.py
+├── ci/
+│   └── generate_all.py         # CI orchestrator
+├── projects.json               # Project registry (repos, doc paths)
+├── compatibility.json          # Boot ↔ companion version map
+├── templates/
+│   └── skill.md                # SKILL.md template
+└── versions.json               # Tracked versions (updated by CI)
+```
 
 ## License
 

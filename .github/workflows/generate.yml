@@ -1,16 +1,18 @@
-name: Generate Spring Boot Skills
+name: Generate Spring Skills
 
 on:
   schedule:
-    # Daily at 8 AM UTC — check for new Spring Boot releases
+    # Daily at 8 AM UTC — check for new Spring releases
     - cron: '0 8 * * *'
   push:
     branches: [main]
     paths:
-      # Script change → bump revision for all tracked versions
       - 'generate_skill.py'
-      # Manual version list edit
+      - 'skillgen/**'
       - 'versions.json'
+      - 'projects.json'
+      - 'compatibility.json'
+      - 'templates/**'
   workflow_dispatch:
     inputs:
       force:
@@ -24,6 +26,7 @@ permissions:
 jobs:
   generate:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -57,14 +60,16 @@ jobs:
             zip_path=$(echo "$release_info" | cut -d: -f3)
             display="${minor}.x"
 
-            # Copy to consistent asset name for download URLs
-            cp "${zip_path}" "spring-boot-best-practices.zip"
+            # Copy to consistent asset name
+            cp "${zip_path}" "spring-best-practices.zip"
 
             # Delete existing release if present, then create fresh
             gh release delete "$tag" --yes --cleanup-tag 2>/dev/null || true
-            gh release create "$tag" "spring-boot-best-practices.zip" \
-              --title "Spring Boot ${display} Skill" \
-              --notes "Auto-generated Claude Code skill for Spring Boot ${display}.
+            gh release create "$tag" "spring-best-practices.zip" \
+              --title "Spring ${display} Skill" \
+              --notes "Auto-generated Claude Code skill for the Spring ${display} ecosystem.
+
+          Includes Spring Boot, Security, AI, Cloud, Modulith, and more — all at compatible versions.
 
           ## Install
 
@@ -72,7 +77,7 @@ jobs:
           curl -fsSL https://raw.githubusercontent.com/Tcivie/spring-boot-skill-gen/main/install.sh | bash -s -- ${minor}
           \`\`\`
 
-          Generated from official Spring Boot ${display} documentation."
+          Generated from official Spring documentation."
           done
 
       - name: Commit updated versions.json
