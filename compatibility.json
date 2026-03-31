@@ -33,6 +33,7 @@
   "4.0": {
     "boot": "4.0",
     "security": "7.0",
+    "ai": "2.0",
     "modulith": "2.0",
     "cloud_train": "2025.1"
   }

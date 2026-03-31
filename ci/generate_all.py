@@ -47,11 +47,16 @@ def _github_headers() -> dict[str, str]:
 def get_latest_patch(repo: str, tag_prefix: str, minor: str) -> str | None:
     """Find the latest GA patch version for a given minor line.
 
+    Falls back to the latest milestone/RC if no GA exists.
     E.g. minor="6.4" in spring-security → "6.4.13"
+    E.g. minor="2.0" in spring-ai (no GA) → "2.0.0-M4"
     """
-    best: str | None = None
-    best_tuple: tuple[int, ...] = (0,)
-    prefix_re = re.compile(rf"^{re.escape(tag_prefix)}(\d+\.\d+\.\d+)$")
+    best_ga: str | None = None
+    best_ga_tuple: tuple[int, ...] = (0,)
+    best_pre: str | None = None
+
+    ga_re = re.compile(rf"^{re.escape(tag_prefix)}(\d+\.\d+\.\d+)$")
+    pre_re = re.compile(rf"^{re.escape(tag_prefix)}({re.escape(minor)}\.\d+-(M|RC)\d+)$")
 
     for page in range(1, 4):
         resp = httpx.get(
@@ -64,20 +69,28 @@ def get_latest_patch(repo: str, tag_prefix: str, minor: str) -> str | None:
         if not tags:
             break
         for tag in tags:
-            m = prefix_re.match(tag["name"])
-            if not m:
+            # Try GA match first
+            m = ga_re.match(tag["name"])
+            if m:
+                version = m.group(1)
+                if version.startswith(f"{minor}."):
+                    v_tuple = tuple(map(int, version.split(".")))
+                    if v_tuple > best_ga_tuple:
+                        best_ga = version
+                        best_ga_tuple = v_tuple
                 continue
-            version = m.group(1)
-            if not version.startswith(f"{minor}."):
-                continue
-            v_tuple = tuple(map(int, version.split(".")))
-            if v_tuple > best_tuple:
-                best = version
-                best_tuple = v_tuple
-        if best:
-            break  # Found at least one match, no need to paginate
 
-    return best
+            # Try pre-release match (M1, RC1, etc.)
+            m = pre_re.match(tag["name"])
+            if m:
+                # Keep the latest pre-release (they appear in reverse chrono order)
+                if best_pre is None:
+                    best_pre = m.group(1)
+
+        if best_ga:
+            break  # Found GA, no need to paginate
+
+    return best_ga or best_pre
 
 
 def resolve_cloud_versions(train_minor: str) -> dict[str, str]:
