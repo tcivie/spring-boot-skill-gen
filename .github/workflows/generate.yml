@@ -57,9 +57,12 @@ jobs:
             zip_path=$(echo "$release_info" | cut -d: -f3)
             display="${minor}.x"
 
+            # Copy to consistent asset name for download URLs
+            cp "${zip_path}" "spring-boot-best-practices.zip"
+
             # Delete existing release if present, then create fresh
             gh release delete "$tag" --yes --cleanup-tag 2>/dev/null || true
-            gh release create "$tag" "${zip_path}" \
+            gh release create "$tag" "spring-boot-best-practices.zip" \
               --title "Spring Boot ${display} Skill" \
               --notes "Auto-generated Claude Code skill for Spring Boot ${display}.
 

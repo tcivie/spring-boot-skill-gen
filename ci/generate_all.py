@@ -169,7 +169,7 @@ def main() -> None:
         print(result.stdout)
 
         # Create zip immediately while output dir has this version's content
-        zip_path = ZIPS_DIR / "spring-boot-best-practices.zip"
+        zip_path = ZIPS_DIR / f"spring-boot-best-practices-{minor}.zip"
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
             for file in sorted(skill_dir.rglob("*")):
                 if file.is_file():
