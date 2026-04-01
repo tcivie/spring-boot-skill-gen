@@ -85,7 +85,8 @@
       "cloud-vault": "5.0.1",
       "cloud-commons": "5.0.1",
       "cloud-contract": "5.0.2",
-      "cloud-task": "5.0.1"
+      "cloud-task": "5.0.1",
+      "ai": "2.0.0-M4"
     }
   }
 }
