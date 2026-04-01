@@ -10,6 +10,8 @@ from pathlib import Path
 
 # Post-processing patterns to clean downdoc output
 _POST_PATTERNS = [
+    # AsciiDoc anchors [[anchor-id]]
+    (re.compile(r"\[\[[\w\-]+\]\]"), ""),
     (re.compile(r"\{[\w\-]+\}"), ""),
     (re.compile(r"javadoc:[/\w.$]*?(\w+)\[[^\]]*\]"), r"`\1`"),
     (re.compile(r"javadoc:[/\w.$]*"), ""),

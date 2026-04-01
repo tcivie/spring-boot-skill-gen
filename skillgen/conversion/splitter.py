@@ -67,7 +67,7 @@ def split_large_file(md: str, title: str) -> dict[str, str] | None:
             if sl and not sl.startswith("#") and not sl.startswith("```"):
                 desc = sl[:120]
                 break
-        index_lines.append(f"- `{filename}` — {heading}" + (f": {desc}" if desc else ""))
+        index_lines.append(f"- [{heading}]({filename})" + (f" — {desc}" if desc else ""))
         result[filename] = "\n".join(section_lines).strip()
 
     result["_index"] = "\n".join(index_lines).strip()

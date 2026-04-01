@@ -15,10 +15,19 @@ _FIRST_PARA_RE = re.compile(
 )
 
 
-def extract_title(adoc: str) -> str:
-    """Extract the = Title from AsciiDoc content."""
+def extract_title(adoc: str, filename: str = "") -> str:
+    """Extract the = Title from AsciiDoc content. Falls back to filename."""
     m = _TITLE_RE.search(adoc)
-    return m.group(1).strip() if m else "Untitled"
+    if m:
+        title = m.group(1).strip()
+        # Clean leftover AsciiDoc anchors like [[anchor-id]]
+        title = re.sub(r"\[\[[\w\-]+\]\]", "", title).strip()
+        return title
+    if filename:
+        # Convert "anthropic-chat.adoc" → "Anthropic Chat"
+        stem = filename.rsplit(".", 1)[0] if "." in filename else filename
+        return stem.replace("-", " ").replace("_", " ").title()
+    return "Untitled"
 
 
 def extract_keywords(adoc: str) -> str:
@@ -35,6 +44,7 @@ def extract_keywords(adoc: str) -> str:
 
     clean = []
     for h in headings:
+        h = re.sub(r"\[\[[\w\-]+\]\]", "", h)  # strip [[anchor-id]]
         h = re.sub(r"[`{}\[\]<>]", "", h).strip()
         if h and h.lower() not in ("see also", "what to read next"):
             clean.append(h)

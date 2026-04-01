@@ -1,4 +1,4 @@
-"""Skill generation: assembles reference files and SKILL.md."""
+"""Skill generation: assembles reference files with progressive CONTENTS.md indexes."""
 
 from __future__ import annotations
 
@@ -20,15 +20,72 @@ def _out_filename(topic) -> str:
     return f"{topic.section}/{stem}.md"
 
 
+def _write_section_contents(
+    section_dir: Path,
+    section_name: str,
+    entries: list[tuple[str, str, str]],
+    display_name: str,
+) -> None:
+    """Write a CONTENTS.md for a section directory listing its topic files."""
+    lines = [f"# {display_name} — {section_title(section_name)}\n"]
+    lines.append("Load the specific topic you need:\n")
+
+    for filename, title, desc in sorted(entries, key=lambda e: e[1]):
+        line = f"- [{title}]({filename})"
+        if desc:
+            line += f" — {desc}"
+        lines.append(line)
+
+    (section_dir / "CONTENTS.md").write_text("\n".join(lines) + "\n")
+
+
+def _write_project_contents(
+    project_dir: Path,
+    display_name: str,
+    section_entries: dict[str, list[tuple[str, str, str]]],
+) -> None:
+    """Write a CONTENTS.md for a project directory listing its sections.
+
+    If the project has only one section called "general", skip the section
+    level and list topics directly — avoids a useless indirection layer.
+    """
+    sections = list(section_entries.keys())
+
+    # Single "general" section → list topics directly
+    if len(sections) == 1 and sections[0] == "general":
+        entries = section_entries["general"]
+        lines = [f"# {display_name}\n"]
+        lines.append("Load the specific topic you need:\n")
+        for filename, title, desc in sorted(entries, key=lambda e: e[1]):
+            line = f"- [{title}](general/{filename})"
+            if desc:
+                line += f" — {desc}"
+            lines.append(line)
+        (project_dir / "CONTENTS.md").write_text("\n".join(lines) + "\n")
+        return
+
+    lines = [f"# {display_name}\n"]
+    lines.append("Browse by section:\n")
+
+    for section_name in sorted(section_entries.keys()):
+        entries = section_entries[section_name]
+        topic_count = len(entries)
+        all_topics = ", ".join(t for _, t, _ in sorted(entries, key=lambda e: e[1]))
+
+        lines.append(f"- [{section_title(section_name)}]({section_name}/CONTENTS.md) ({topic_count} topics) — {all_topics}")
+
+    (project_dir / "CONTENTS.md").write_text("\n".join(lines) + "\n")
+
+
 def generate_project(
     project_id: str,
     version: str,
     config: ProjectConfig,
     refs_dir: Path,
-) -> tuple[int, int, list[str]]:
+) -> tuple[int, int, str]:
     """Generate reference files for one project.
 
-    Returns (fetched_count, skipped_count, topic_index_lines).
+    Returns (fetched_count, skipped_count, project_summary_line).
     """
     project_refs = refs_dir / project_id
     project_refs.mkdir(parents=True, exist_ok=True)
@@ -39,17 +96,18 @@ def generate_project(
     topics = discover_topics(version, config)
     if not topics:
         print(f"  No topics found for {project_id} {version}")
-        return 0, 0, []
+        return 0, 0, ""
 
     # 2. Fetch
     print(f"  Fetching {len(topics)} files...", flush=True)
     adoc_contents = asyncio.run(fetch_all(topics))
     print(f"  Fetched {len(adoc_contents)}/{len(topics)} files")
 
-    # 3. Extract metadata
+    # 3. Extract metadata (pass filename for fallback title)
     topic_meta: dict[str, tuple[str, str]] = {}
     for path, content in adoc_contents.items():
-        topic_meta[path] = (extract_title(content), extract_keywords(content))
+        filename = Path(path).name
+        topic_meta[path] = (extract_title(content, filename), extract_keywords(content))
 
     # 4. Convert
     print("  Converting to markdown...", flush=True)
@@ -57,7 +115,8 @@ def generate_project(
 
     # 5. Write reference files
     topic_by_path = {t.adoc_path: t for t in topics}
-    sections: dict[tuple[str, str], list[tuple[str, str, str]]] = defaultdict(list)
+    # section -> [(filename_relative_to_section, title, desc)]
+    section_entries: dict[str, list[tuple[str, str, str]]] = defaultdict(list)
 
     fetched = 0
     split_count = 0
@@ -68,11 +127,16 @@ def generate_project(
         out_path = _out_filename(topic)
         title, desc = topic_meta.get(path, ("Untitled", ""))
 
+        # Prefix how-to titles
+        if topic.module == "how-to":
+            title = f"How-to: {title}"
+
         (project_refs / topic.section).mkdir(parents=True, exist_ok=True)
 
+        stem = Path(topic.adoc_path).stem
         split = split_large_file(md, title)
         if split:
-            topic_dir = project_refs / topic.section / Path(topic.adoc_path).stem
+            topic_dir = project_refs / topic.section / stem
             topic_dir.mkdir(parents=True, exist_ok=True)
             index_content = split.pop("_index")
             (project_refs / out_path).write_text(index_content)
@@ -82,32 +146,29 @@ def generate_project(
         else:
             (project_refs / out_path).write_text(md)
 
-        sections[(topic.module, topic.section)].append((out_path, title, desc))
+        # Track for CONTENTS.md — filename is relative to section dir
+        section_entries[topic.section].append((f"{stem}.md", title, desc))
         fetched += 1
 
     skipped = len(topics) - fetched
     print(f"  Written: {fetched} files ({split_count} split), {skipped} skipped")
 
-    # 6. Build topic index lines for this project
-    merged: dict[str, list[tuple[str, str, str, str]]] = defaultdict(list)
-    for (module, section), entries in sections.items():
-        for out_path, title, desc in entries:
-            prefix = "How-to: " if module == "how-to" else ""
-            merged[section].append((out_path, f"{prefix}{title}", desc, module))
-
-    index_lines: list[str] = []
+    # 6. Write CONTENTS.md at each level
     display_name = PROJECT_DISPLAY_NAMES.get(project_id, project_id.replace("-", " ").title())
-    index_lines.append(f"\n### {display_name}\n")
-    for section in sorted(merged.keys()):
-        if len(merged) > 1:
-            index_lines.append(f"\n#### {section_title(section)}\n")
-        for out_path, title, desc, _ in sorted(merged[section], key=lambda e: e[1]):
-            line = f"- `references/{project_id}/{out_path}` — {title}"
-            if desc:
-                line += f" ({desc})"
-            index_lines.append(line)
 
-    return fetched, skipped, index_lines
+    # Section-level CONTENTS.md
+    for section_name, entries in section_entries.items():
+        section_dir = project_refs / section_name
+        _write_section_contents(section_dir, section_name, entries, display_name)
+
+    # Project-level CONTENTS.md
+    _write_project_contents(project_refs, display_name, section_entries)
+
+    # Build a one-line summary for the top-level SKILL.md
+    section_names = ", ".join(section_title(s) for s in sorted(section_entries.keys()))
+    summary = f"- [{display_name}](references/{project_id}/CONTENTS.md) ({fetched} topics) — {section_names}"
+
+    return fetched, skipped, summary
 
 
 def build_bundled_skill(
@@ -123,7 +184,7 @@ def build_bundled_skill(
         shutil.rmtree(skill_dir)
     refs_dir.mkdir(parents=True, exist_ok=True)
 
-    all_index_lines: list[str] = []
+    project_summaries: list[str] = []
     total_fetched = 0
     total_skipped = 0
     project_count = 0
@@ -134,13 +195,13 @@ def build_bundled_skill(
             print(f"  Warning: unknown project '{project_id}', skipping")
             continue
 
-        fetched, skipped, index_lines = generate_project(
+        fetched, skipped, summary = generate_project(
             project_id, version, config, refs_dir
         )
         total_fetched += fetched
         total_skipped += skipped
         if fetched > 0:
-            all_index_lines.extend(index_lines)
+            project_summaries.append(summary)
             project_count += 1
 
     # Write SKILL.md from template
@@ -149,7 +210,7 @@ def build_bundled_skill(
     skill_content = template.format(
         version=display_version,
         generated_at=generated_at,
-        topic_index="\n".join(all_index_lines),
+        project_index="\n".join(project_summaries),
         project_count=project_count,
     )
     (skill_dir / "SKILL.md").write_text(skill_content)
@@ -179,7 +240,7 @@ def build_single_skill(
         shutil.rmtree(skill_dir)
     refs_dir.mkdir(parents=True, exist_ok=True)
 
-    fetched, skipped, index_lines = generate_project(
+    fetched, skipped, summary = generate_project(
         project_id, version, config, refs_dir
     )
 
@@ -188,7 +249,7 @@ def build_single_skill(
     skill_content = template.format(
         version=display_version,
         generated_at=generated_at,
-        topic_index="\n".join(index_lines),
+        project_index=summary,
         project_count=1,
     )
     (skill_dir / "SKILL.md").write_text(skill_content)

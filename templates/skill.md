@@ -40,18 +40,19 @@ Before writing any code, ask: *does Spring already do this?*
 
 ---
 
-## Reference Files
+## Reference Projects
 
-Load on demand when the topic is relevant. Do **not** load all at once.
-{topic_index}
+Load the project you need, then drill into sections and topics. Do **not** load everything at once.
+
+{project_index}
 
 ---
 
 ## How to Use These References
 
 1. Check the anti-pattern table above first — the answer may already be there.
-2. Find the relevant project section and topic in the index. Load only that file, not multiple.
-3. Some large topics have their own sub-index — load the specific sub-section you need.
-4. Before writing a custom `@Bean` or `@Configuration`, check if a `spring.*` property already controls the behavior.
-5. Before writing a custom REST endpoint for health/metrics, check Actuator first.
-6. For Spring Cloud, check if a starter already provides the integration you need.
+2. Open the relevant project's `CONTENTS.md` to see available sections.
+3. Open the section's `CONTENTS.md` to see available topics.
+4. Load only the specific topic file you need.
+5. Before writing a custom `@Bean`, check if a `spring.*` property already controls the behavior.
+6. Before writing a custom endpoint for health/metrics, check Actuator first.
