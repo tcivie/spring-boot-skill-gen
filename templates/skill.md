@@ -1,6 +1,6 @@
 ---
 name: spring-best-practices
-description: Guides Spring development with best practices, anti-patterns, and official reference docs for Spring Boot, Security, AI, Cloud, Modulith, and more. Use when working in a Spring-based codebase.
+description: Official Spring reference docs with best practices and anti-patterns. Use when editing files that import org.springframework, contain @SpringBootApplication, @Bean, @ConfigurationProperties, or spring-boot-starter dependencies. Also use when user mentions "Spring", "Boot", "Actuator", "Spring Cloud", "Spring Security", "auto-configuration", or asks how to configure application.yml.
 ---
 
 # Spring {version} — Reference SKILL
