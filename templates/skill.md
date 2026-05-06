@@ -1,6 +1,19 @@
 ---
 name: spring-best-practices
-description: Official Spring reference docs with best practices and anti-patterns. Use when editing files that import org.springframework, contain @SpringBootApplication, @Bean, @ConfigurationProperties, or spring-boot-starter dependencies. Also use when user mentions "Spring", "Boot", "Actuator", "Spring Cloud", "Spring Security", "auto-configuration", or asks how to configure application.yml.
+description: Official Spring Framework and Spring Boot {version} reference docs with best practices and anti-patterns. ALWAYS load when working on a Spring service — editing application.yml, application.properties, application-*.yml, bootstrap.yml, build.gradle / build.gradle.kts / pom.xml with spring-boot-starter dependencies, or any Java/Kotlin/Scala source containing @SpringBootApplication, @RestController, @Service, @Repository, @Component, @Configuration, @Bean, @ConfigurationProperties, @EnableAutoConfiguration, @EnableEurekaClient, @FeignClient, @KafkaListener annotations. Also load when user mentions "Spring", "Spring Boot", "Spring Cloud", "Spring Security", "Spring Data", "Actuator", "Eureka", "Feign", "auto-configuration", "dependency injection", or asks about application.yml / application.properties configuration.
+paths:
+  - "**/application.yml"
+  - "**/application.yaml"
+  - "**/application.properties"
+  - "**/application-*.yml"
+  - "**/application-*.yaml"
+  - "**/application-*.properties"
+  - "**/bootstrap.yml"
+  - "**/bootstrap.yaml"
+  - "**/bootstrap.properties"
+  - "**/spring.factories"
+  - "**/META-INF/spring/*.imports"
+  - "**/META-INF/spring.factories"
 ---
 
 # Spring {version} — Reference SKILL
